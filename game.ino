@@ -51,8 +51,8 @@ const byte pinButton = 2;
 const byte xPin = A0;
 const byte yPin = A1;
 
-byte change = true;
-
+byte change = true;//detects if lcd refresh is needed
+//settings
 byte sound = true;
 byte difficulty = 2;
 byte brightness = 3;
@@ -66,7 +66,7 @@ struct eePromable{
   int topScores[5];
 };
 
-const unsigned long debounceInterval = 200;
+const unsigned long debounceInterval = 200; //interrupt debounce
 unsigned long lastPressDebounce = 0;
 byte buttonPressed = false;
 
@@ -91,14 +91,14 @@ String backMsg = "Press to go back";
 char aboutMsg[] = "Snake by Gogu Razvan     github: https://github.com/gogurazvan/         ";
 char howMsg[] = "Use the joystick to control the snake and eat the food for big score     ";
 
-String noScoreMsg = "No scores";
+String noScoreMsg = "No scores"; 
 
-byte option = 0;
+byte option = 0; //determines the option selected and where the option arrow should be
 byte collumn = 0;
 
 byte menuState = MAIN;
 byte settingSelected = false;
-
+//custom characters for menu
 byte selectArrow[] = {
   B11000,
   B11100,
@@ -140,23 +140,24 @@ byte block[] = {
   B11111
 };
 
-byte setupPlay = true;
+byte setupPlay = true; //determines if the game is just beginning
 byte optiunePauza = 0;
 byte pauza = 0;
 
 int score = 0;
-int direction = RIGHT;
+int direction = RIGHT; //determines in wich direction the snake goes when it moves
 struct Punct{
   int x, y;  
-}newFoodPos, lastFoodPos;
+}newFoodPos, lastFoodPos; 
 byte xPos = 0;
 byte yPos = 0;
 byte xLastPos = 0;
 byte yLastPos = 0;
-const byte moveInterval =500;
+
+const byte moveInterval =500; //determines snake movement speed
 unsigned long long lastMoved = 0;
 
-byte matrix[matrixSize][matrixSize] = {
+byte matrix[matrixSize][matrixSize] = { //reprezentation of led matrix
   {0, 0, 0, 0, 0, 0, 0, 0},
   {0, 0, 0, 0, 0, 0, 0, 0},
   {0, 0, 0, 0, 0, 0, 0, 0},
@@ -176,7 +177,7 @@ byte matrixByte[matrixSize] = {
   B00000000,
   B00000000
 };
-byte matrixChanged = true;
+byte matrixChanged = true; //checks if the matrix needs to be refreshed
 
 LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
 LedControl lc = LedControl(dinPin, clockPin, loadPin, 1);
@@ -299,7 +300,7 @@ void loop() {
         }
         afisareScor();
         modifyDirection();
-        if (millis() - lastMoved > moveInterval){
+        if (millis() - lastMoved > moveInterval){ 
           updatePositions();
           lastMoved = millis();
         }
@@ -326,7 +327,7 @@ void loop() {
   }
 
 }
-void afiseazaPauza(){
+void afiseazaPauza(){ //displays the options of the pause screen
   if (change){
     lcd.clear();
     change = false;
@@ -344,7 +345,8 @@ void afiseazaPauza(){
   lcd.setCursor(11*optiunePauza,1);
   lcd.write(byte(ARROW_SELECT));
 }
-byte alegeriPauza(byte opt){
+
+byte alegeriPauza(byte opt){ //selects option of the pause screen
   int xVal = analogRead(xPin);
   if (xVal < MIN_TRESHHOLD){ 
     if (opt!=0) change = true;  
@@ -356,7 +358,8 @@ byte alegeriPauza(byte opt){
   }
   return opt;
 }
-void setupLCD(){
+
+void setupLCD(){//apply settings
   int mappedBrightness = map(brightness,0,6,0,255);
   int mappedContrast = map(contrast,0,6,0,100);
   int mappedMBrightness = map(mBrightness, 0, 6, 0, 15);
@@ -365,7 +368,7 @@ void setupLCD(){
   lc.setIntensity(0, mappedMBrightness);
 }
 
-void afisareMain(){
+void afisareMain(){ //display main menu on lcd
   lcd.clear();
   lcd.setCursor(0, collumn); 
   lcd.write(byte(ARROW_SELECT));
@@ -386,7 +389,7 @@ void afisareMain(){
   } 
 }
 
-void afisareSettings(){
+void afisareSettings(){ //display seetings menu on lcd
   lcd.clear();
   lcd.setCursor(0, collumn);
   if (settingSelected){
@@ -437,7 +440,7 @@ void afisareSettings(){
   }
 }
 
-void afisareAbout(){
+void afisareAbout(){ //display about text on lcd with scrolling text
   static unsigned long lastShift = 0;
   const unsigned long interval = 500;
   static int positionStart = 0;
@@ -454,7 +457,7 @@ void afisareAbout(){
     lastShift = millis();
   }
 }
-void afisareHow(){
+void afisareHow(){ //display how to play text on lcd with scrolling text
   static unsigned long lastShift = 0;
   const unsigned long interval = 500;
   static int positionStart = 0;
@@ -473,7 +476,7 @@ void afisareHow(){
   return;  
 }
 
-void afisareScor(){
+void afisareScor(){ //display in-game hood
   if (change){
     lcd.clear();
     change = false;
@@ -493,7 +496,7 @@ void afisareScor(){
   
 }
 
-byte moveOptions(byte maxOption) {
+byte moveOptions(byte maxOption) { //handles the menu select
   static byte yNeutral = false;
   int yVal = analogRead(yPin);
   if (yVal > MAX_TRESHHOLD && !yNeutral){
@@ -516,7 +519,7 @@ byte moveOptions(byte maxOption) {
   return collumn;
 }
 
-void setSetting(){
+void setSetting(){ //handles the change of the selected settings option
   static byte xNeutral = false;
   int xVal = analogRead(xPin);
   int incr = 0;
@@ -569,21 +572,21 @@ void setSetting(){
     return;
   }
 }
-void generateFood() {
+void generateFood() { //generates points for the snake to eat
   lastFoodPos.x = xPos;
   lastFoodPos.y = yPos;
-  newFoodPos.x = random(8);
-  newFoodPos.y = random(8);
+  newFoodPos.x = random(matrixSize);
+  newFoodPos.y = random(matrixSize);
   matrix[lastFoodPos.x][lastFoodPos.x] = 0;
   matrix[newFoodPos.x][newFoodPos.x] = 1;
   matrixChanged = true;
 }
+
 void updateByteMatrix() {
   for(int row =0; row < matrixSize; row++) {
     lc.setRow(0, row, matrixByte[row]);
   }
 }
-
 void updateMatrix() {
   for(int row =0; row < matrixSize; row++) {
     for(int col =0; col < matrixSize; col++) {
@@ -591,7 +594,8 @@ void updateMatrix() {
     }
   }
 }
-void modifyDirection(){
+
+void modifyDirection(){ //change direction where snake moves
   int xValue = analogRead(xPin);
   int yValue = analogRead(yPin);
   if (xValue < MIN_TRESHHOLD) direction = LEFT;
@@ -600,7 +604,7 @@ void modifyDirection(){
   if (yValue > MAX_TRESHHOLD) direction = UP;
 }
 
-void updatePositions() {
+void updatePositions() { //moves the snake
 
   xLastPos = xPos;
   yLastPos = yPos;
@@ -648,7 +652,7 @@ void updatePositions() {
   matrix[xPos][yPos] = 1;
   
 }
-void buttonPress(){
+void buttonPress(){ //interrupt function detects button pressing
   if (millis() - lastPressDebounce > debounceInterval) {
       buttonPressed = true;
       lastPressDebounce = millis();
