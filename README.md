@@ -23,5 +23,4 @@ The game starts when you select the start game option. In the settings option yo
 - 1x 1kΩ resistor
 - 1x 220Ω resistor
 
-Sadly no video because I encountered some tehnical difficulties:/
 
